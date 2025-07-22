@@ -62,7 +62,9 @@ func TestUnmarshalSuccessfulServiceResponseWithMalformTimestamp(t *testing.T) {
 	s := `<cas:serviceResponse xmlns:cas="http://www.yale.edu/tp/cas">
    <cas:authenticationSuccess>
      <cas:user>username</cas:user>
-     <cas:authenticationDate>2025-07-22T02:04:29.974Z[UTC]</cas:authenticationDate>
+    <cas:attributes>
+      <cas:authenticationDate>2025-07-22T02:04:29.974Z[UTC]</cas:authenticationDate>
+    </cas:attributes>
    </cas:authenticationSuccess>
 </cas:serviceResponse>`
 
@@ -75,9 +77,10 @@ func TestUnmarshalSuccessfulServiceResponseWithMalformTimestamp(t *testing.T) {
 		t.Errorf("Expected User to be <username>, got <%s>", sr.User)
 	}
 
-	if time.Time(sr.AuthenticationDate).Equal(time.Date(2025, 07, 22, 02, 04, 29, 974000, time.UTC)) {
-		t.Errorf("Expected ProxyGrantingTicket to be <PGTIOU-84678-8a9d3r389439>, got <%s>",
-			sr.ProxyGrantingTicket)
+	expectedAuthDate := time.Date(2025, 07, 22, 02, 04, 29, 974000000, time.UTC)
+	if !time.Time(sr.AuthenticationDate).Equal(expectedAuthDate) {
+		t.Errorf("Expected AuthenticationDate to be <%s>, got <%s>",
+			expectedAuthDate, sr.AuthenticationDate)
 	}
 }
 
