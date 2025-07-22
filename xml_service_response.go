@@ -2,8 +2,33 @@ package cas
 
 import (
 	"encoding/xml"
+	"strings"
 	"time"
 )
+
+type casTime time.Time
+
+func (t *casTime) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var value string
+	if err := d.DecodeElement(&value, &start); err != nil {
+		return err
+	}
+	// remove timezone from timestamp, for example: 2025-07-22T02:04:29.974Z[UTC]
+	idx := strings.LastIndex(value, "[")
+	if idx != -1 {
+		value = value[:idx]
+	}
+	parsedTime, err := time.Parse(time.RFC3339, value)
+	if err != nil {
+		return err
+	}
+	*t = casTime(parsedTime)
+	return nil
+}
+
+func (t casTime) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return e.EncodeElement(time.Time(t).Format(time.RFC3339), start)
+}
 
 type xmlServiceResponse struct {
 	XMLName xml.Name `xml:"http://www.yale.edu/tp/cas serviceResponse"`
@@ -37,11 +62,11 @@ func (p *xmlProxies) AddProxy(proxy string) {
 }
 
 type xmlAttributes struct {
-	XMLName                                xml.Name  `xml:"attributes"`
-	AuthenticationDate                     time.Time `xml:"authenticationDate"`
-	LongTermAuthenticationRequestTokenUsed bool      `xml:"longTermAuthenticationRequestTokenUsed"`
-	IsFromNewLogin                         bool      `xml:"isFromNewLogin"`
-	MemberOf                               []string  `xml:"memberOf"`
+	XMLName                                xml.Name `xml:"attributes"`
+	AuthenticationDate                     casTime  `xml:"authenticationDate"`
+	LongTermAuthenticationRequestTokenUsed bool     `xml:"longTermAuthenticationRequestTokenUsed"`
+	IsFromNewLogin                         bool     `xml:"isFromNewLogin"`
+	MemberOf                               []string `xml:"memberOf"`
 	UserAttributes                         *xmlUserAttributes
 	ExtraAttributes                        []*xmlAnyAttribute `xml:",any"`
 }

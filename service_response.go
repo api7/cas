@@ -95,7 +95,7 @@ func ParseServiceResponse(data []byte) (*AuthenticationResponse, error) {
 	}
 
 	if a := x.Success.Attributes; a != nil {
-		r.AuthenticationDate = a.AuthenticationDate
+		r.AuthenticationDate = time.Time(a.AuthenticationDate)
 		r.IsRememberedLogin = a.LongTermAuthenticationRequestTokenUsed
 		r.IsNewLogin = a.IsFromNewLogin
 		r.MemberOf = a.MemberOf

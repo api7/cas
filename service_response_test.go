@@ -58,6 +58,32 @@ func TestUnmarshalSuccessfulServiceResponse(t *testing.T) {
 	}
 }
 
+func TestUnmarshalSuccessfulServiceResponseWithMalformTimestamp(t *testing.T) {
+	s := `<cas:serviceResponse xmlns:cas="http://www.yale.edu/tp/cas">
+   <cas:authenticationSuccess>
+     <cas:user>username</cas:user>
+     <cas:attributes>
+       <cas:authenticationDate>2025-07-22T02:04:29.974Z[UTC]</cas:authenticationDate>
+     </cas:attributes>
+   </cas:authenticationSuccess>
+</cas:serviceResponse>`
+
+	sr, err := ParseServiceResponse([]byte(s))
+	if err != nil {
+		t.Errorf("Unmarshal service response failed: %v", err)
+	}
+
+	if sr.User != "username" {
+		t.Errorf("Expected User to be <username>, got <%s>", sr.User)
+	}
+
+	expectedAuthDate := time.Date(2025, 07, 22, 02, 04, 29, 974000000, time.UTC)
+	if !time.Time(sr.AuthenticationDate).Equal(expectedAuthDate) {
+		t.Errorf("Expected AuthenticationDate to be <%s>, got <%s>",
+			expectedAuthDate, sr.AuthenticationDate)
+	}
+}
+
 func TestUnmarshalSuccessfulServiceResponseWithAttributes(t *testing.T) {
 	s := `<?xml version="1.0"?>
 <cas:serviceResponse xmlns:cas="http://www.yale.edu/tp/cas">
@@ -410,7 +436,7 @@ func TestSuccessfulServiceResponseWithProxies(t *testing.T) {
 func TestSuccessfulServiceResponseWithBasicAttributes(t *testing.T) {
 	sr := successServiceResponse("username", "")
 	sr.Success.Attributes = &xmlAttributes{
-		AuthenticationDate:                     time.Date(2015, 02, 10, 14, 28, 42, 0, time.UTC),
+		AuthenticationDate:                     casTime(time.Date(2015, 02, 10, 14, 28, 42, 0, time.UTC)),
 		LongTermAuthenticationRequestTokenUsed: false,
 		IsFromNewLogin:                         true,
 	}
@@ -439,7 +465,7 @@ func TestSuccessfulServiceResponseWithBasicAttributes(t *testing.T) {
 func TestSuccessfulServiceResponseWithMemberOfAttributes(t *testing.T) {
 	sr := successServiceResponse("username", "")
 	sr.Success.Attributes = &xmlAttributes{
-		AuthenticationDate:                     time.Date(2015, 02, 10, 14, 28, 42, 0, time.UTC),
+		AuthenticationDate:                     casTime(time.Date(2015, 02, 10, 14, 28, 42, 0, time.UTC)),
 		LongTermAuthenticationRequestTokenUsed: false,
 		IsFromNewLogin:                         true,
 		MemberOf:                               []string{"staff", "faculty", "testing"},
@@ -472,7 +498,7 @@ func TestSuccessfulServiceResponseWithMemberOfAttributes(t *testing.T) {
 func TestSuccessfulServiceResponseWithNamedUserAttributes(t *testing.T) {
 	sr := successServiceResponse("username", "")
 	sr.Success.Attributes = &xmlAttributes{
-		AuthenticationDate:                     time.Date(2015, 02, 10, 14, 28, 42, 0, time.UTC),
+		AuthenticationDate:                     casTime(time.Date(2015, 02, 10, 14, 28, 42, 0, time.UTC)),
 		LongTermAuthenticationRequestTokenUsed: false,
 		IsFromNewLogin:                         true,
 		MemberOf:                               []string{"staff", "faculty", "testing"},
@@ -515,7 +541,7 @@ func TestSuccessfulServiceResponseWithNamedUserAttributes(t *testing.T) {
 func TestSuccessfulServiceResponseWithAnyUserAttributes(t *testing.T) {
 	sr := successServiceResponse("username", "")
 	sr.Success.Attributes = &xmlAttributes{
-		AuthenticationDate:                     time.Date(2015, 02, 10, 14, 28, 42, 0, time.UTC),
+		AuthenticationDate:                     casTime(time.Date(2015, 02, 10, 14, 28, 42, 0, time.UTC)),
 		LongTermAuthenticationRequestTokenUsed: false,
 		IsFromNewLogin:                         true,
 		MemberOf:                               []string{"staff", "faculty", "testing"},
