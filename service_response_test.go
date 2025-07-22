@@ -62,9 +62,9 @@ func TestUnmarshalSuccessfulServiceResponseWithMalformTimestamp(t *testing.T) {
 	s := `<cas:serviceResponse xmlns:cas="http://www.yale.edu/tp/cas">
    <cas:authenticationSuccess>
      <cas:user>username</cas:user>
-    <cas:attributes>
-      <cas:authenticationDate>2025-07-22T02:04:29.974Z[UTC]</cas:authenticationDate>
-    </cas:attributes>
+     <cas:attributes>
+       <cas:authenticationDate>2025-07-22T02:04:29.974Z[UTC]</cas:authenticationDate>
+     </cas:attributes>
    </cas:authenticationSuccess>
 </cas:serviceResponse>`
 
